@@ -4,10 +4,10 @@ setup(
     name = 'django_backup',
     packages = find_packages(),
     version = '1.0.0',
-    description = 'A backup database command for django.',
-    author = 'Dmitriy Kovalev',
+    description = 'A fork and extension of Dmitriy Kovalev's backup database command for django.',
+    author = 'Dmitriy Kovalev, Michael Huynh, msaelices, Andy Baker, Chen Zhe',
     #author_email = '',
-    url = 'http://github.com/mikexstudios/django-backup',
+    url = 'http://github.com/andybak/django-backup',
     classifiers=[
         'Programming Language :: Python', 
         'Framework :: Django', 
