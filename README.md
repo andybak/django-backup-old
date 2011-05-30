@@ -32,8 +32,8 @@ New Features in this fork
 - Unfortunately Postgres support hasn't been kept up to date in this version. It shouldn't be that hard to replace.
 
 
-Supported ptions for manage.py backup
-~~~~~~~~~~~~~
+Supported options for manage.py backup
+--------------------------------------
 
 --email
 default=None
@@ -83,8 +83,8 @@ Clean up surplus remote database backups
 default=False
 Clean up surplus remote media backups
 
-Extra Settings
---------------
+Extra Settings::
+---------------
 
   BACKUP_SQLDUMP_PATH = '/path/to/mysqldump' # mysqldump binary location
   BACKUP_LOCAL_DIRECTORY = '/path/to/backups' # Where to store local backups
@@ -103,7 +103,7 @@ Extra Settings
      'monthly': 12,
   }
 
-  # Same algorith as above
+  # Same as above
   BACKUP_MEDIA_COPIES = {
      'daily': 1,
      'weekly': 2,
