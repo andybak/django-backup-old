@@ -34,58 +34,58 @@ New Features in this fork
 
 Supported options for manage.py backup
 --------------------------------------
+::
+    --email
+    default=None
+    Sends email with attached dump file
 
---email
-default=None
-Sends email with attached dump file
+    --compress -c
+    default=False
+    Compress SQL dump file
 
---compress -c
-default=False
-Compress SQL dump file
+    --ftp -f
+    default=False
+    Store backup on remote FTP server
 
---ftp -f
-default=False
-Store backup on remote FTP server
+    --media -m
+    default=False
+    Backup media dirs as well as SQL dump
 
---media -m
-default=False
-Backup media dirs as well as SQL dump
+    --nolocal
+    default=False
+    Keep local copies of backup
 
---nolocal
-default=False
-Keep local copies of backup
+    --deletelocal
+    default=False
+    Delete all local backups
 
---deletelocal
-default=False
-Delete all local backups
+    --cleandb
+    default=False
+    Clean up surplus database backups
 
---cleandb
-default=False
-Clean up surplus database backups
+    --cleanmedia
+    default=False
+    Clean up surplus media backups
 
---cleanmedia
-default=False
-Clean up surplus media backups
+    --cleanlocaldb
+    default=False
+    Clean up surplus local database backups
 
---cleanlocaldb
-default=False
-Clean up surplus local database backups
+    --cleanlocalmedia
+    default=False
+    Clean up surplus local media backups
 
---cleanlocalmedia
-default=False
-Clean up surplus local media backups
+    --cleanremotedb
+    default=False
+    Clean up surplus remote database backups
 
---cleanremotedb
-default=False
-Clean up surplus remote database backups
+    --cleanremotemedia
+    default=False
+    Clean up surplus remote media backups
 
---cleanremotemedia
-default=False
-Clean up surplus remote media backups
-
-Extra Settings::
----------------
-
+Extra Settings
+--------------
+::
   BACKUP_SQLDUMP_PATH = '/path/to/mysqldump' # mysqldump binary location
   BACKUP_LOCAL_DIRECTORY = '/path/to/backups' # Where to store local backups
   BACKUP_MEDIA_DIRECTORIES = ['documents', 'images'] # Which media directors to backup. Relative to MEDIA_ROOT
