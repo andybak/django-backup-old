@@ -84,28 +84,28 @@ default=False
 Clean up surplus remote media backups
 
 Extra Settings
-~~~~~~~~~~~~~~
+--------------
 
-BACKUP_SQLDUMP_PATH = '/path/to/mysqldump' # mysqldump binary location
-BACKUP_LOCAL_DIRECTORY = '/path/to/backups' # Where to store local backups
-BACKUP_MEDIA_DIRECTORIES = ['documents', 'images'] # Which media directors to backup. Relative to MEDIA_ROOT
+  BACKUP_SQLDUMP_PATH = '/path/to/mysqldump' # mysqldump binary location
+  BACKUP_LOCAL_DIRECTORY = '/path/to/backups' # Where to store local backups
+  BACKUP_MEDIA_DIRECTORIES = ['documents', 'images'] # Which media directors to backup. Relative to MEDIA_ROOT
 
-BACKUP_FTP_SERVER = 'example.com'
-BACKUP_FTP_USERNAME = 'username'
-BACKUP_FTP_PASSWORD = 'password'
-BACKUP_FTP_DIRECTORY = '/path/to/backups/mysite' # If you store multiple backups on the same remote server ensure each one is in a different directory
-RESTORE_FROM_FTP_DIRECTORY = '/path/to/backups/mysite' # Where does the restore
+  BACKUP_FTP_SERVER = 'example.com'
+  BACKUP_FTP_USERNAME = 'username'
+  BACKUP_FTP_PASSWORD = 'password'
+  BACKUP_FTP_DIRECTORY = '/path/to/backups/mysite' # If you store multiple backups on the same remote server ensure each one is in a different directory
+  RESTORE_FROM_FTP_DIRECTORY = '/path/to/backups/mysite' # Where does the restore
 
-# How many db backups should we keep on remote FTP? i.e. 1 per day for the last 7 days plus 1 per week for the last 4 weeks etc.
-BACKUP_DATABASE_COPIES = {
-   'daily': 7,
-   'weekly': 4,
-   'monthly': 12,
-}
+  # How many db backups should we keep on remote FTP? i.e. 1 per day for the last 7 days plus 1 per week for the last 4 weeks etc.
+  BACKUP_DATABASE_COPIES = {
+     'daily': 7,
+     'weekly': 4,
+     'monthly': 12,
+  }
 
-# Same algorith as above
-BACKUP_MEDIA_COPIES = {
-   'daily': 1,
-   'weekly': 2,
-   'monthly': 4,
-}
+  # Same algorith as above
+  BACKUP_MEDIA_COPIES = {
+     'daily': 1,
+     'weekly': 2,
+     'monthly': 4,
+  }
