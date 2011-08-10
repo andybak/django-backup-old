@@ -308,11 +308,11 @@ class Command(BaseCommand):
     def do_mysql_backup(self, outfile):
         args = []
         if self.user:
-            args += ["--user=%s" % self.user]
+            args += ["--user='%s'" % self.user]
         if self.passwd:
-            args += ["--password=%s" % self.passwd]
+            args += ["--password='%s'" % self.passwd]
         if self.host:
-            args += ["--host=%s" % self.host]
+            args += ["--host='%s'" % self.host]
         if self.port:
             args += ["--port=%s" % self.port]
         args += [self.db]
