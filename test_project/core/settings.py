@@ -161,6 +161,12 @@ LOGGING = {
     }
 }
 
+BACKUP_LOCAL_DIRECTORY = os.path.abspath(os.path.join(PROJECT_ROOT, 'backup'))
+BACKUP_FTP_SERVER = None
+BACKUP_FTP_USERNAME = None
+BACKUP_FTP_PASSWORD = None
+BACKUP_FTP_DIRECTORY = None
+
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
