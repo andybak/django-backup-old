@@ -7,7 +7,7 @@ from datetime import timedelta
 from optparse import make_option
 import re
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.core.mail import EmailMessage
 from django.conf import settings
 
