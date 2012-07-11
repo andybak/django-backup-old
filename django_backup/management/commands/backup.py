@@ -102,7 +102,7 @@ class Command(BaseCommand):
         make_option('--directory', '-d', action='append', default=[], dest='directories',
             help='Destination Directory'),
         make_option('--media', '-m', action='store_true', default=False, dest='media',
-            help='Backup media dirs'),
+            help='Backup media dir'),
         make_option('--cleandb', action='store_true', default=False, dest='clean_db',
             help='Clean up surplus database backups'),
         make_option('--cleanmedia', action='store_true', default=False, dest='clean_media',
@@ -214,9 +214,7 @@ class Command(BaseCommand):
 
         # Backing up media directories,
         if self.media:
-            media_dirs = list(settings.BACKUP_MEDIA_DIRECTORIES)
-            media_dirs = [os.path.join(settings.MEDIA_ROOT,m) for m in media_dirs]
-            self.directories += media_dirs
+            self.directories += [settings.MEDIA_ROOT]
 
         # Backing up directories
         dir_outfiles = []

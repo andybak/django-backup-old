@@ -88,7 +88,6 @@ Extra Settings
 ::
   BACKUP_SQLDUMP_PATH = '/path/to/mysqldump' # mysqldump binary location
   BACKUP_LOCAL_DIRECTORY = '/path/to/backups' # Where to store local backups
-  BACKUP_MEDIA_DIRECTORIES = ['documents', 'images'] # Which media directors to backup. Relative to MEDIA_ROOT
 
   BACKUP_FTP_SERVER = 'example.com'
   BACKUP_FTP_USERNAME = 'username'
