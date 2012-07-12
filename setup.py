@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'django_backup',
-    packages = find_packages(),
+    packages = find_packages(exclude=('test_project',)),
     version = '1.0.1',
     description = 'A fork and extension of Dmitriy Kovalev\'s backup database command for django.',
     author = 'Dmitriy Kovalev, Michael Huynh, msaelices, Andy Baker, Chen Zhe',
