@@ -199,9 +199,9 @@ class Command(BaseCommand):
             print 'Doing Mysql backup to database %s into %s' % (self.db, outfile)
             self.do_mysql_backup(outfile)
         # TODO reinstate postgres support
-        #elif self.engine in ('postgresql_psycopg2', 'postgresql'):
-        #    print 'Doing Postgresql backup to database %s into %s' % (self.db, outfile)
-        #    self.do_postgresql_backup(outfile)
+        elif self.engine in ('postgresql_psycopg2', 'postgresql', 'django_postgrespool'):
+            print 'Doing Postgresql backup to database %s into %s' % (self.db, outfile)
+            self.do_postgresql_backup(outfile)
         else:
             raise CommandError('Backup in %s engine not implemented' % self.engine)
 
@@ -320,18 +320,19 @@ class Command(BaseCommand):
         args = []
         if self.user:
             args += ["--username=%s" % self.user]
-        if self.passwd:
-            args += ["--password"]
         if self.host:
             args += ["--host=%s" % self.host]
         if self.port:
             args += ["--port=%s" % self.port]
         if self.db:
             args += [self.db]
-        pipe = popen2.Popen4('pg_dump %s > %s' % (' '.join(args), outfile))
+        pgdump_path = getattr(settings, 'BACKUP_PG_DUMP_PATH', 'pg_dump')
+        
         if self.passwd:
-            pipe.tochild.write('%s\n' % self.passwd)
-            pipe.tochild.close()
+            os.environ['PGPASSWORD'] = self.passwd
+        pgdump_cmd = '%s %s > %s' % (pgdump_path, ' '.join(args), outfile)
+        print pgdump_cmd
+        os.system(pgdump_cmd)
 
     def clean_local_surplus_db(self):
         try:
