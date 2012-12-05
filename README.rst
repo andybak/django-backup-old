@@ -51,6 +51,10 @@ Supported options for manage.py backup
     default=False
     Backup media dirs as well as SQL dump
 
+    --rsync -r
+    default=False
+    Backup media dirs with rsync
+
     --nolocal
     default=False
     Keep local copies of backup
@@ -83,6 +87,18 @@ Supported options for manage.py backup
     default=False
     Clean up surplus remote media backups
 
+    --cleanrsync
+    default=False
+    Clean up broken rsync backups
+    
+    --cleanlocalrsync
+    default=False
+    Clean up local broken rsync backups
+    
+    --cleanremotersync
+    default=False
+    Clean up remote broken rsync backups
+    
 Extra Settings
 --------------
 ::
