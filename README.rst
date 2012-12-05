@@ -124,3 +124,25 @@ Extra Settings
      'weekly': 2,
      'monthly': 4,
   }
+  
+Examples
+--------------
+
+  A db-only backup
+    python manage.py backup --ftp
+    
+  db plus rsync media backup
+    python manage.py backup --media --rsync --ftp
+  
+  db plus SFTP media backup
+    python manage.py backup --media --ftp
+  
+  db plus rsync media backup, validate remote rsync backups, clearn surplus media and db backs, and do not keep local copies of backups. 
+    python manage.py backup --media --rsync --ftp --deletelocal --cleanremotedb --cleanremotemedia --cleanremotersync
+    
+    or 
+    
+    call_command("backup", ftp=True, media=True, delete_local=True, clean_remote_db=True, clean_remote_media=True, clean_remote_rsync=True)
+  
+  
+  

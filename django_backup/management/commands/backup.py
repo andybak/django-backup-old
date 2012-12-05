@@ -302,7 +302,7 @@ class Command(BaseCommand):
             if remove_all:
                 print '=' * 70
                 print 'cleaning up local db and media backups'
-                command = 'rm %s' % remove_all
+                command = 'rm -r %s' % remove_all
                 print '=' * 70
                 print 'Running Command: %s' % command
                 os.system(command)
@@ -315,7 +315,7 @@ class Command(BaseCommand):
             if remove_all:
                 print '=' * 70
                 print 'cleaning up local backups'
-                command = 'rm %s' % remove_all
+                command = 'rm -r %s' % remove_all
                 print '=' * 70
                 print 'Running Command: %s' % command
                 os.system(command)
