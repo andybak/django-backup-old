@@ -51,6 +51,10 @@ Supported options for manage.py backup
     default=False
     Backup media dirs as well as SQL dump
 
+    --rsync -r
+    default=False
+    Backup media dirs with rsync
+
     --nolocal
     default=False
     Keep local copies of backup
@@ -83,6 +87,18 @@ Supported options for manage.py backup
     default=False
     Clean up surplus remote media backups
 
+    --cleanrsync
+    default=False
+    Clean up broken rsync backups
+    
+    --cleanlocalrsync
+    default=False
+    Clean up local broken rsync backups
+    
+    --cleanremotersync
+    default=False
+    Clean up remote broken rsync backups
+    
 Extra Settings
 --------------
 ::
@@ -108,3 +124,25 @@ Extra Settings
      'weekly': 2,
      'monthly': 4,
   }
+  
+Examples
+--------------
+
+  A db-only backup
+    python manage.py backup --ftp
+    
+  db plus rsync media backup
+    python manage.py backup --media --rsync --ftp
+  
+  db plus SFTP media backup
+    python manage.py backup --media --ftp
+  
+  db plus rsync media backup, validate remote rsync backups, clearn surplus media and db backs, and do not keep local copies of backups. 
+    python manage.py backup --media --rsync --ftp --deletelocal --cleanremotedb --cleanremotemedia --cleanremotersync
+    
+    or 
+    
+    call_command("backup", ftp=True, media=True, delete_local=True, clean_remote_db=True, clean_remote_media=True, clean_remote_rsync=True)
+  
+  
+  
