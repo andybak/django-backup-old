@@ -225,7 +225,7 @@ class Command(BaseCommand):
             print 'Doing Mysql backup to database %s into %s' % (self.db, outfile)
             self.do_mysql_backup(outfile)
         # TODO reinstate postgres support
-        elif self.engine in ('postgresql_psycopg2', 'postgresql', 'django_postgrespool'):
+        elif self.engine == 'django.db.backends.postgresql_psycopg2':
             print 'Doing Postgresql backup to database %s into %s' % (self.db, outfile)
             self.do_postgresql_backup(outfile)
         else:
@@ -281,14 +281,15 @@ class Command(BaseCommand):
         
     def store_ftp(self, local_files=[]):
         sftp = self.get_connection()
-        try:
-            sftp.mkdir(self.remote_dir)
-        except IOError:
-            pass
+        if self.remote_dir:
+            try:
+                sftp.mkdir(self.remote_dir)
+            except IOError:
+                pass
         for local_file in local_files:
             filename = os.path.split(local_file)[-1]
             print 'Saving %s to remote server ' % local_file
-            sftp.put(local_file, os.path.join(self.remote_dir,filename))
+            sftp.put(local_file, os.path.join(self.remote_dir or '',filename))
         sftp.close()
         if self.delete_local:
             backups = os.listdir(self.backup_dir)
