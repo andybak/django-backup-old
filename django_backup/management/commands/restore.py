@@ -39,20 +39,19 @@ class Command(BaseCommand):
 
 
         self.backup_dir = settings.BACKUP_LOCAL_DIRECTORY
-        self.remote_dir = settings.RESTORE_FROM_FTP_DIRECTORY
+        self.remote_dir = settings.RESTORE_FROM_FTP_DIRECTORY or ''
         self.ftp_server = settings.BACKUP_FTP_SERVER
         self.ftp_username = settings.BACKUP_FTP_USERNAME
         self.ftp_password = settings.BACKUP_FTP_PASSWORD
 
         sftp = self.get_connection()
-        backups = [i.strip() for i in sftp.execute('ls %s' % self.remote_dir)]
+        backups = [i.strip() for i in sftp.execute('ls %s' % (self.remote_dir))]
         db_backups = filter(is_db_backup, backups)
         db_backups.sort()
         media_backups = filter(is_media_backup, backups)
         media_backups.sort()
 
         tempdir = gettempdir()
-        tempdir = settings.PROJECT_DIR
 
         db_remote = db_backups[-1]
         #media_remote = media_backups[-1]
@@ -65,8 +64,17 @@ class Command(BaseCommand):
 
         self.uncompress(db_local)
         sql_local = db_local[:-3]
-        self.mysql_restore(sql_local)
 
+        # Doing restore
+        if self.engine == 'django.db.backends.mysql':
+            print 'Doing Mysql restore to database %s from %s' % (self.db, sql_local)
+            self.mysql_restore(sql_local)
+        # TODO reinstate postgres support
+        elif self.engine == 'django.db.backends.postgresql_psycopg2':
+            print 'Doing Postgresql backup to database %s into %s' % (self.db, sql_local)
+            self.posgresql_restore(sql_local)
+        else:
+            raise CommandError('Backup in %s engine not implemented' % self.engine)
 
     def get_connection(self):
         '''
@@ -93,5 +101,14 @@ class Command(BaseCommand):
         print cmd
         os.system(cmd)
 
-
-
+    def posgresql_restore(self, infile):
+        args = ['psql']
+        args.append('-f %s' % infile)
+        if self.host:
+            args.append("-h %s" % self.host)
+        if self.port:
+            args.append("-p %s" % settings.DATABASE_PORT)
+        args.append(self.db)
+        cmd = ' '.join(args)
+        print cmd
+        os.system(cmd)
