@@ -2,7 +2,7 @@ import os
 import time
 from tempfile import gettempdir
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 import pysftp as ssh
@@ -91,7 +91,7 @@ class Command(BaseCommand):
         '''
         get the ssh connection to the remote server.
         '''
-        return ssh.Connection(host = self.ftp_server, username = self.ftp_username, password = self.ftp_password)
+        return ssh.Connection(host=self.ftp_server, username=self.ftp_username, password=self.ftp_password)
 
     def uncompress(self, file):
         #os.system('tar xvfz %s' % file)

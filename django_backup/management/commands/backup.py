@@ -267,7 +267,7 @@ class Command(BaseCommand):
 
     def compress_dir(self, directory, outfile):
         print 'Backup directories ...'
-        command = 'cd %s && tar -czf * %s' % (directory, outfile)
+        command = 'cd %s && tar -czf %s *' % (directory, outfile)
         print '=' * 70
         print 'Running Command: %s' % command
         os.system(command)
