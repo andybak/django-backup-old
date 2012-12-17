@@ -69,7 +69,7 @@ class Command(BaseCommand):
         if self.restore_media:
             print 'Fetching media %s...' % media_remote
             media_local = os.path.join(self.tempdir, media_remote)
-            # sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
+            sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
             print 'Uncompressing media...'
             self.uncompress_media(media_local)
         sql_local = db_local[:-3]
@@ -122,7 +122,7 @@ class Command(BaseCommand):
         if self.host:
             args.append("-h %s" % self.host)
         if self.port:
-            args.append("-p %s" % settings.DATABASE_PORT)
+            args.append("-p %s" % self.port)
         args.append("-o %s" % os.path.join(self.tempdir, 'dump.log'))
         args.append(self.db)
         cmd = ' '.join(args)
