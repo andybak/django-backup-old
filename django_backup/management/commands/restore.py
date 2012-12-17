@@ -1,5 +1,6 @@
 import os
 import time
+from optparse import make_option
 from tempfile import gettempdir
 
 from django.core.management.base import BaseCommand, CommandError
@@ -14,12 +15,15 @@ from backup import is_media_backup
 
 class Command(BaseCommand):
     help = "Restores latest backup."
+    option_list = BaseCommand.option_list + (
+        make_option('--media', '-m', action='store_true', default=False, dest='media',
+            help='Restore media dir'),
+    )
 
     def _time_suffix(self):
         return time.strftime(TIME_FORMAT)
 
     def handle(self, *args, **options):
-
         try:
             self.engine = settings.DATABASES['default']['ENGINE']
             self.db = settings.DATABASES['default']['NAME']
@@ -40,6 +44,7 @@ class Command(BaseCommand):
         self.ftp_server = settings.BACKUP_FTP_SERVER
         self.ftp_username = settings.BACKUP_FTP_USERNAME
         self.ftp_password = settings.BACKUP_FTP_PASSWORD
+        self.restore_media = options.get('media')
 
         print 'Connecting to %s...' % self.ftp_server
         sftp = self.get_connection()
@@ -50,39 +55,32 @@ class Command(BaseCommand):
         media_backups = filter(is_media_backup, backups)
         media_backups.sort()
 
-        tempdir = gettempdir()
+        self.tempdir = gettempdir()
 
         db_remote = db_backups[-1]
         media_remote = media_backups[-1]
 
-        db_timestamp = db_remote[:-7].split('_')[1]
-        media_timestamp = media_remote[:-7].split('_')[1]
-        if db_timestamp == media_timestamp:
-            restore_media = True
-        else:
-            restore_media = False
-
-        db_local = os.path.join(tempdir, db_remote)
+        db_local = os.path.join(self.tempdir, db_remote)
 
         print 'Fetching database %s...' % db_remote
         sftp.get(os.path.join(self.remote_dir, db_remote), db_local)
         print 'Uncompressing database...'
         self.uncompress(db_local)
-        if restore_media:
+        if self.restore_media:
             print 'Fetching media %s...' % media_remote
-            media_local = os.path.join(tempdir, media_remote)
-            sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
+            media_local = os.path.join(self.tempdir, media_remote)
+            # sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
             print 'Uncompressing media...'
-            self.uncompress(media_local)
+            self.uncompress_media(media_local)
         sql_local = db_local[:-3]
 
         # Doing restore
         if self.engine == 'django.db.backends.mysql':
-            print 'Doing Mysql restore to database %s from %s' % (self.db, sql_local)
+            print 'Doing Mysql restore to database %s from %s...' % (self.db, sql_local)
             self.mysql_restore(sql_local)
         # TODO reinstate postgres support
         elif self.engine == 'django.db.backends.postgresql_psycopg2':
-            print 'Doing Postgresql backup to database %s into %s' % (self.db, sql_local)
+            print 'Doing Postgresql backup to database %s into %s...' % (self.db, sql_local)
             self.posgresql_restore(sql_local)
         else:
             raise CommandError('Backup in %s engine not implemented' % self.engine)
@@ -94,8 +92,14 @@ class Command(BaseCommand):
         return ssh.Connection(host=self.ftp_server, username=self.ftp_username, password=self.ftp_password)
 
     def uncompress(self, file):
-        #os.system('tar xvfz %s' % file)
-        os.system('gunzip %s' % file)
+        cmd = 'gunzip -f %s' % file
+        print '\t', cmd
+        os.system(cmd)
+
+    def uncompress_media(self, file):
+        cmd = u'tar -C %s -xzf %s' % (settings.MEDIA_ROOT, file)
+        print u'\t', cmd
+        os.system(cmd)
 
     def mysql_restore(self, infile):
         args = []
@@ -109,7 +113,7 @@ class Command(BaseCommand):
             args += ["--port=%s" % self.port]
         args += [self.db]
         cmd = 'mysql %s < %s' % (' '.join(args), infile)
-        print cmd
+        print '\t', cmd
         os.system(cmd)
 
     def posgresql_restore(self, infile):
@@ -119,7 +123,8 @@ class Command(BaseCommand):
             args.append("-h %s" % self.host)
         if self.port:
             args.append("-p %s" % settings.DATABASE_PORT)
+        args.append("-o %s" % os.path.join(self.tempdir, 'dump.log'))
         args.append(self.db)
         cmd = ' '.join(args)
-        print cmd
+        print '\t', cmd
         os.system(cmd)
