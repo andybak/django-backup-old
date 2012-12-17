@@ -11,6 +11,7 @@ from backup import TIME_FORMAT
 from backup import is_db_backup
 from backup import is_media_backup
 
+
 class Command(BaseCommand):
     help = "Restores latest backup."
 
@@ -18,9 +19,6 @@ class Command(BaseCommand):
         return time.strftime(TIME_FORMAT)
 
     def handle(self, *args, **options):
-
-        from django.db import connection
-        from django.conf import settings
 
         try:
             self.engine = settings.DATABASES['default']['ENGINE']
@@ -37,14 +35,15 @@ class Command(BaseCommand):
             self.host = settings.DATABASE_HOST
             self.port = settings.DATABASE_PORT
 
-
         self.backup_dir = settings.BACKUP_LOCAL_DIRECTORY
         self.remote_dir = settings.RESTORE_FROM_FTP_DIRECTORY or ''
         self.ftp_server = settings.BACKUP_FTP_SERVER
         self.ftp_username = settings.BACKUP_FTP_USERNAME
         self.ftp_password = settings.BACKUP_FTP_PASSWORD
 
+        print 'Connecting to %s...' % self.ftp_server
         sftp = self.get_connection()
+        print 'Connected.'
         backups = [i.strip() for i in sftp.execute('ls %s' % (self.remote_dir))]
         db_backups = filter(is_db_backup, backups)
         db_backups.sort()
@@ -54,15 +53,27 @@ class Command(BaseCommand):
         tempdir = gettempdir()
 
         db_remote = db_backups[-1]
-        #media_remote = media_backups[-1]
+        media_remote = media_backups[-1]
+
+        db_timestamp = db_remote[:-7].split('_')[1]
+        media_timestamp = media_remote[:-7].split('_')[1]
+        if db_timestamp == media_timestamp:
+            restore_media = True
+        else:
+            restore_media = False
 
         db_local = os.path.join(tempdir, db_remote)
-        #media_local = os.path.join(tempdir, media_remote)
 
+        print 'Fetching database %s...' % db_remote
         sftp.get(os.path.join(self.remote_dir, db_remote), db_local)
-        #sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
-
+        print 'Uncompressing database...'
         self.uncompress(db_local)
+        if restore_media:
+            print 'Fetching media %s...' % media_remote
+            media_local = os.path.join(tempdir, media_remote)
+            sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
+            print 'Uncompressing media...'
+            self.uncompress(media_local)
         sql_local = db_local[:-3]
 
         # Doing restore
