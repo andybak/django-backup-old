@@ -1,6 +1,5 @@
 import calendar
 import os
-import popen2
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -17,14 +16,18 @@ TIME_FORMAT = '%Y%m%d-%H%M%S'
 regex = re.compile(r'(\d){8}-(\d){6}')
 GOOD_RSYNC_FLAG = '__good_backup'
 
+
 def is_db_backup(filename):
     return filename.startswith('backup_')
+
 
 def is_media_backup(filename):
     return filename.startswith('dir_')
 
+
 def is_backup(filename):
     return (is_db_backup(filename) or is_media_backup(filename))
+
 
 def get_date(filename):
     '''
@@ -34,6 +37,7 @@ def get_date(filename):
     date_str = result.group()
     d = datetime.strptime(date_str, TIME_FORMAT)
     return d
+
 
 def between_interval(filename, start, end):
     '''
@@ -46,6 +50,7 @@ def between_interval(filename, start, end):
     else:
         return False
 
+
 def reserve_interval(backups, type, num):
     '''
     given a list of backup filenames, interval type(monthly, weekly, daily),
@@ -55,26 +60,27 @@ def reserve_interval(backups, type, num):
     now = datetime.now()
     if type == 'monthly':
         delta = timedelta(30)
-        interval_end = datetime(now.year, now.month, 1) # begin of the month
+        interval_end = datetime(now.year, now.month, 1)  # begin of the month
         interval_start = interval_end - delta
     elif type == 'weekly':
         delta = timedelta(7)
         weekday = calendar.weekday(now.year, now.month, now.day)
         weekday_delta = timedelta(weekday)
-        interval_end = datetime(now.year, now.month, now.day) - weekday_delta # begin of the week
+        interval_end = datetime(now.year, now.month, now.day) - weekday_delta  # begin of the week
         interval_start = interval_end - delta
     elif type == 'daily':
         delta = timedelta(1)
         interval_end = datetime(now.year, now.month, now.day) + delta
         interval_start = interval_end - delta
-    for i in range(1,num+1):
+    for i in range(1, num + 1):
         for backup in backups:
-            if between_interval(backup,interval_start,interval_end):
+            if between_interval(backup, interval_start, interval_end):
                 result.append(backup)
-                break # reserve only one backup per interval
+                break  # reserve only one backup per interval
         interval_end = interval_end - delta
         interval_start = interval_start - delta
     return result
+
 
 def decide_remove(backups, config):
     '''
@@ -82,13 +88,14 @@ def decide_remove(backups, config):
     '''
     reserve = []
     remove_list = []
-    reserve += reserve_interval(backups, 'monthly' ,config['monthly'])
+    reserve += reserve_interval(backups, 'monthly', config['monthly'])
     reserve += reserve_interval(backups, 'weekly', config['weekly'])
     reserve += reserve_interval(backups, 'daily', config['daily'])
     for i in backups:
         if i not in reserve:
             remove_list.append(i)
     return remove_list
+
 
 # Based on: http://www.djangosnippets.org/snippets/823/
 # Based on: http://www.yashh.com/blog/2008/sep/05/django-database-backup-view/
@@ -131,10 +138,8 @@ class Command(BaseCommand):
     )
     help = "Backup database. Only Mysql and Postgresql engines are implemented"
 
-    def _time_suffix(self):
-        return time.strftime(TIME_FORMAT)
-
     def handle(self, *args, **options):
+        self.time_suffix = time.strftime(TIME_FORMAT)
         self.email = options.get('email')
         self.ftp = options.get('ftp')
         self.compress = options.get('compress')
@@ -154,9 +159,6 @@ class Command(BaseCommand):
         self.no_local = options.get('no_local')
         self.delete_local = options.get('delete_local')
 
-        from django.db import connection
-        from django.conf import settings
-        
         try:
             self.engine = settings.DATABASES['default']['ENGINE']
             self.db = settings.DATABASES['default']['NAME']
@@ -171,13 +173,12 @@ class Command(BaseCommand):
             self.passwd = settings.DATABASE_PASSWORD
             self.host = settings.DATABASE_HOST
             self.port = settings.DATABASE_PORT
-            
+
         self.backup_dir = settings.BACKUP_LOCAL_DIRECTORY
         self.remote_dir = settings.BACKUP_FTP_DIRECTORY
         self.ftp_server = settings.BACKUP_FTP_SERVER
         self.ftp_username = settings.BACKUP_FTP_USERNAME
         self.ftp_password = settings.BACKUP_FTP_PASSWORD
-
 
         if self.clean_rsync:
             print 'cleaning broken rsync backups'
@@ -190,7 +191,7 @@ class Command(BaseCommand):
             if self.clean_remote_rsync:
                 print 'cleaning remote broken rsync backups'
                 self.clean_remote_broken_rsync()
-        
+
         if self.clean_db:
             print 'cleaning surplus database backups'
             self.clean_surplus_db()
@@ -218,14 +219,14 @@ class Command(BaseCommand):
         if not os.path.exists(self.backup_dir):
             os.makedirs(self.backup_dir)
 
-        outfile = os.path.join(self.backup_dir, 'backup_%s.sql' % self._time_suffix())
+        outfile = os.path.join(self.backup_dir, 'backup_%s.sql' % self.time_suffix)
 
         # Doing backup
         if self.engine == 'django.db.backends.mysql':
             print 'Doing Mysql backup to database %s into %s' % (self.db, outfile)
             self.do_mysql_backup(outfile)
         # TODO reinstate postgres support
-        elif self.engine in ('postgresql_psycopg2', 'postgresql', 'django_postgrespool'):
+        elif self.engine == 'django.db.backends.postgresql_psycopg2':
             print 'Doing Postgresql backup to database %s into %s' % (self.db, outfile)
             self.do_postgresql_backup(outfile)
         else:
@@ -245,15 +246,14 @@ class Command(BaseCommand):
         # Backing up directories
         dir_outfiles = []
 
-
-        if self.directories: # We need to do media backup
+        if self.directories:  # We need to do media backup
             all_directories = ' '.join(self.directories)
             self.all_directories = all_directories
             if self.rsync:
                 self.do_media_rsync_backup()
             else:
-                # Backup all the directories in one file. 
-                all_outfile = os.path.join(self.backup_dir, 'dir_%s.tar.gz' % (self._time_suffix()))
+                # Backup all the directories in one file.
+                all_outfile = os.path.join(self.backup_dir, 'dir_%s.tar.gz' % (self.time_suffix))
                 self.compress_dir(all_directories, all_outfile)
                 dir_outfiles.append(all_outfile)
 
@@ -264,31 +264,32 @@ class Command(BaseCommand):
 
         if self.ftp:
             print "Saving to remote server"
-            self.store_ftp(local_files=[os.path.join(os.getcwd(),x) for x in dir_outfiles + [outfile]])
+            self.store_ftp(local_files=[os.path.join(os.getcwd(), x) for x in dir_outfiles + [outfile]])
 
     def compress_dir(self, directory, outfile):
         print 'Backup directories ...'
-        command = 'tar -czf %s %s' % (outfile, directory)
+        command = 'cd %s && tar -czf %s *' % (directory, outfile)
         print '=' * 70
         print 'Running Command: %s' % command
         os.system(command)
-        
+
     def get_connection(self):
         '''
         get the ssh connection to the remote server.
         '''
-        return ssh.Connection(host = self.ftp_server, username = self.ftp_username, password = self.ftp_password)
-        
+        return ssh.Connection(host=self.ftp_server, username=self.ftp_username, password=self.ftp_password)
+
     def store_ftp(self, local_files=[]):
         sftp = self.get_connection()
-        try:
-            sftp.mkdir(self.remote_dir)
-        except IOError:
-            pass
+        if self.remote_dir:
+            try:
+                sftp.mkdir(self.remote_dir)
+            except IOError:
+                pass
         for local_file in local_files:
             filename = os.path.split(local_file)[-1]
             print 'Saving %s to remote server ' % local_file
-            sftp.put(local_file, os.path.join(self.remote_dir,filename))
+            sftp.put(local_file, os.path.join(self.remote_dir or '', filename))
         sftp.close()
         if self.delete_local:
             backups = os.listdir(self.backup_dir)
@@ -298,7 +299,7 @@ class Command(BaseCommand):
             print '--cleanlocal, local db and media backups found: %s' % backups
             remove_list = backups
             print 'local db and media backups to clean %s' % remove_list
-            remove_all = ' '.join([os.path.join(self.backup_dir,i) for i in remove_list])
+            remove_all = ' '.join([os.path.join(self.backup_dir, i) for i in remove_list])
             if remove_all:
                 print '=' * 70
                 print 'cleaning up local db and media backups'
@@ -319,7 +320,7 @@ class Command(BaseCommand):
                 print '=' * 70
                 print 'Running Command: %s' % command
                 os.system(command)
-        
+
     def sendmail(self, address_from, addresses_to, attachments):
         subject = "Your DB-backup for " + datetime.now().strftime("%d %b %Y")
         body = "Timestamp of the backup is " + datetime.now().strftime("%d %b %Y")
@@ -358,7 +359,7 @@ class Command(BaseCommand):
         if self.db:
             args += [self.db]
         pgdump_path = getattr(settings, 'BACKUP_PG_DUMP_PATH', 'pg_dump')
-        
+
         if self.passwd:
             os.environ['PGPASSWORD'] = self.passwd
         pgdump_cmd = '%s %s > %s' % (pgdump_path, ' '.join(args), outfile)
@@ -375,7 +376,7 @@ class Command(BaseCommand):
             remove_list = decide_remove(backups, settings.BACKUP_DATABASE_COPIES)
             print '=' * 70
             print 'local db backups to clean %s' % remove_list
-            remove_all = ' '.join([os.path.join(self.backup_dir,i) for i in remove_list])
+            remove_all = ' '.join([os.path.join(self.backup_dir, i) for i in remove_list])
             if remove_all:
                 print '=' * 70
                 print 'cleaning up local db backups'
@@ -397,7 +398,7 @@ class Command(BaseCommand):
             remove_list = decide_remove(backups, settings.BACKUP_DATABASE_COPIES)
             print '=' * 70
             print 'remote db backups to clean %s' % remove_list
-            remove_all_remote = ' '.join([os.path.join(self.remote_dir,i) for i in remove_list])
+            remove_all_remote = ' '.join([os.path.join(self.remote_dir, i) for i in remove_list])
             if remove_all_remote:
                 print '=' * 70
                 print 'cleaning up remote db backups'
@@ -409,11 +410,9 @@ class Command(BaseCommand):
         except ImportError:
             print 'cleaned nothing, because BACKUP_DATABASE_COPIES is missing'
 
-
     def clean_surplus_db(self):
         self.clean_local_surplus_db()
         self.clean_remote_surplus_db()
-
 
     def clean_surplus_media(self):
         self.clean_local_surplus_media()
@@ -430,7 +429,7 @@ class Command(BaseCommand):
             remove_list = decide_remove(backups, settings.BACKUP_MEDIA_COPIES)
             print '=' * 70
             print 'local media backups to clean %s' % remove_list
-            remove_all = ' '.join([os.path.join(self.backup_dir,i) for i in remove_list])
+            remove_all = ' '.join([os.path.join(self.backup_dir, i) for i in remove_list])
             if remove_all:
                 print '=' * 70
                 print 'cleaning up local media backups'
@@ -452,7 +451,7 @@ class Command(BaseCommand):
             remove_list = decide_remove(backups, settings.BACKUP_MEDIA_COPIES)
             print '=' * 70
             print 'remote media backups to clean %s' % remove_list
-            remove_all_remote = ' '.join([os.path.join(self.remote_dir,i) for i in remove_list])
+            remove_all_remote = ' '.join([os.path.join(self.remote_dir, i) for i in remove_list])
             if remove_all_remote:
                 print '=' * 70
                 print 'cleaning up remote media backups'
@@ -464,13 +463,12 @@ class Command(BaseCommand):
         except ImportError:
             print 'cleaned nothing, because BACKUP_MEDIA_COPIES is missing'
 
-
     def do_media_rsync_backup(self):
         #local media rsync backup
         if not self.delete_local and not self.no_local:
             print 'Doing local media rsync backup'
             local_current_backup = os.path.join(self.backup_dir, 'current')
-            local_backup_target = os.path.join(self.backup_dir, 'dir_%s' % (self._time_suffix()))
+            local_backup_target = os.path.join(self.backup_dir, 'dir_%s' % (self.time_suffix))
             local_info = {
                 'local_current_backup': local_current_backup,
                 'all_directories': self.all_directories,
@@ -484,13 +482,12 @@ class Command(BaseCommand):
             print cmd
             os.system(cmd)
 
-
         #remote media rsync backup
         if self.ftp:
             print 'Doing remote media rsync backup'
             host = '%s@%s' % (self.ftp_username, self.ftp_server)
             remote_current_backup = os.path.join(self.remote_dir, 'current')
-            remote_backup_target = os.path.join(self.remote_dir, 'dir_%s' % (self._time_suffix()))
+            remote_backup_target = os.path.join(self.remote_dir, 'dir_%s' % (self.time_suffix))
             remote_info = {
                 'remote_current_backup': remote_current_backup,
                 'all_directories': self.all_directories,
@@ -508,7 +505,7 @@ class Command(BaseCommand):
                 sftp.mkdir(self.remote_dir)
             except IOError:
                 pass
-            os.system(cmd)        
+            os.system(cmd)
 
     def clean_broken_rsync(self):
         self.clean_local_broken_rsync()
@@ -547,4 +544,3 @@ class Command(BaseCommand):
         full_cmd = '\n'.join(commands)
         print full_cmd
         os.system(full_cmd)
-
