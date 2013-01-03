@@ -362,7 +362,7 @@ class Command(BaseCommand):
 
         if self.passwd:
             os.environ['PGPASSWORD'] = self.passwd
-        pgdump_cmd = '%s %s > %s' % (pgdump_path, ' '.join(args), outfile)
+        pgdump_cmd = '%s %s --clean > %s' % (pgdump_path, ' '.join(args), outfile)
         print pgdump_cmd
         os.system(pgdump_cmd)
 
