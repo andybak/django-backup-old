@@ -95,7 +95,7 @@ class Command(BaseCommand):
         return ssh.Connection(host=self.ftp_server, username=self.ftp_username, password=self.ftp_password)
 
     def uncompress(self, file):
-        cmd = 'tar -xf %s' % file
+        cmd = 'cd %s;gzip -df %s' % (self.tempdir, file)
         print '\t', cmd
         return os.system(cmd)
 
