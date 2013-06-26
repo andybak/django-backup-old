@@ -149,13 +149,13 @@ class Command(BaseCommand):
         self.clean = options.get('clean')
         self.clean_db = options.get('clean_db')
         self.clean_media = options.get('clean_media')
-        self.clean_rsync = options.get('clean_rsync')
+        self.clean_rsync = options.get('clean_rsync') and self.rsync #only when rsync is True
         self.clean_local_db = options.get('clean_local_db')
         self.clean_remote_db = options.get('clean_remote_db')
         self.clean_local_media = options.get('clean_local_media')
         self.clean_remote_media = options.get('clean_remote_media')
-        self.clean_local_rsync = options.get('clean_local_rsync')
-        self.clean_remote_rsync = options.get('clean_remote_rsync')
+        self.clean_local_rsync = options.get('clean_local_rsync') and self.rsync #only when rsync is True
+        self.clean_remote_rsync = options.get('clean_remote_rsync') and self.rsync #only when rsync is True
         self.no_local = options.get('no_local')
         self.delete_local = options.get('delete_local')
 
