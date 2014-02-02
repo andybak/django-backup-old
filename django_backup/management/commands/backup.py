@@ -9,6 +9,7 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from django.core.mail import EmailMessage
 from django.conf import settings
+from django.db import connection
 
 import pysftp as ssh
 
@@ -279,6 +280,12 @@ class Command(BaseCommand):
         '''
         return ssh.Connection(host=self.ftp_server, username=self.ftp_username, password=self.ftp_password)
 
+    def get_blacklist_tables(self):
+        '''
+        exclude BACKUP_TABLES_BLACKLIST if it's defined.
+        '''
+        return getattr(settings, 'BACKUP_TABLES_BLACKLIST', [])
+
     def store_ftp(self, local_files=[]):
         sftp = self.get_connection()
         if self.remote_dir:
@@ -346,6 +353,11 @@ class Command(BaseCommand):
         if self.port:
             args += ["--port=%s" % self.port]
         args += [self.db]
+        blacklist_tables = self.get_blacklist_tables()
+        if blacklist_tables:
+            all_tables = connection.introspection.get_table_list(connection.cursor())
+            tables = list(set(all_tables) - set(blacklist_tables))
+            args += tables
         os.system('%s %s > %s' % (getattr(settings, 'BACKUP_SQLDUMP_PATH', 'mysqldump'), ' '.join(args), outfile))
 
     def do_postgresql_backup(self, outfile):
