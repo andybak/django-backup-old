@@ -98,6 +98,9 @@ Supported options for manage.py backup
     --cleanremotersync
     default=False
     Clean up remote broken rsync backups
+
+When rsync flag is combined with ftp flag data will be backed up using rsync to a remote server.
+When rsync flag is used without the ftp flag data will be backed up to the local machine.
     
 Extra Settings
 --------------
@@ -124,6 +127,8 @@ Extra Settings
      'weekly': 2,
      'monthly': 4,
   }
+
+Note that the settings which include FTP in their name will also be used for rsync.
   
 Examples
 --------------
@@ -136,6 +141,9 @@ Examples
   
   db plus SFTP media backup
     python manage.py backup --media --ftp
+
+  Restore the most recent backup including media
+    python manage.py restore --media
   
   db plus rsync media backup, validate remote rsync backups, clearn surplus media and db backs, and do not keep local copies of backups. 
     python manage.py backup --media --rsync --ftp --deletelocal --cleanremotedb --cleanremotemedia --cleanremotersync
@@ -143,6 +151,3 @@ Examples
     or 
     
     call_command("backup", ftp=True, media=True, delete_local=True, clean_remote_db=True, clean_remote_media=True, clean_remote_rsync=True)
-  
-  
-  
