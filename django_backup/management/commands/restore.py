@@ -74,7 +74,20 @@ class Command(BaseCommand):
         if self.restore_media:
             print 'Fetching media %s...' % media_remote
             media_local = os.path.join(self.tempdir, media_remote)
-            sftp.get(os.path.join(self.remote_dir, media_remote), media_local)
+            media_remote_full_path = os.path.join(self.remote_dir, media_remote)
+            #check if the media is compressed or a folder
+            cmd = 'if [[ -d "%s" ]]; then echo 1; else echo 0; fi'
+            is_folder = int(sftp.execute(cmd % media_remote_full_path)[0])
+            if is_folder == 1:
+                #uncompressed so compress before transfer
+                tmp_remote_file = sftp.execute("mktemp -t")[0].strip()
+                print "Compressing media for transfer: %s..." % tmp_remote_file
+                media_dir = os.path.join(media_remote_full_path, "media")
+                sftp.execute('cd %s && tar -czf %s *' % (media_dir, tmp_remote_file))
+                sftp.get(tmp_remote_file, media_local)
+                sftp.execute('rm %s' % tmp_remote_file)
+            else:
+                sftp.get(media_remote_full_path, media_local)
             print 'Uncompressing media...'
             self.uncompress_media(media_local)
         # Doing restore
