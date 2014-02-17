@@ -79,17 +79,16 @@ class Command(BaseCommand):
             cmd = 'if [[ -d "%s" ]]; then echo 1; else echo 0; fi'
             is_folder = int(sftp.execute(cmd % media_remote_full_path)[0])
             if is_folder == 1:
-                #uncompressed so compress before transfer
-                tmp_remote_file = sftp.execute("mktemp -t")[0].strip()
-                print "Compressing media for transfer: %s..." % tmp_remote_file
                 media_dir = os.path.join(media_remote_full_path, "media")
-                sftp.execute('cd %s && tar -czf %s *' % (media_dir, tmp_remote_file))
-                sftp.get(tmp_remote_file, media_local)
-                sftp.execute('rm %s' % tmp_remote_file)
+                #A trailing slash to transfer only the contents of the folder
+                remote_rsync = '%s@%s:%s/' % (self.ftp_username, self.ftp_server, media_dir)
+                rsync_restore_cmd = 'rsync -az %s %s' % (remote_rsync, settings.MEDIA_ROOT)
+                print 'Running rsync restore command: ', rsync_restore_cmd
+                os.system(rsync_restore_cmd)
             else:
                 sftp.get(media_remote_full_path, media_local)
-            print 'Uncompressing media...'
-            self.uncompress_media(media_local)
+                print 'Uncompressing media...'
+                self.uncompress_media(media_local)
         # Doing restore
         if self.engine == 'django.db.backends.mysql':
             print 'Doing Mysql restore to database %s from %s...' % (self.db, sql_local)
