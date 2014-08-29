@@ -1,6 +1,7 @@
 import calendar
 import os
 import time
+from copy import copy
 from datetime import datetime
 from datetime import timedelta
 from optparse import make_option
@@ -353,13 +354,21 @@ class Command(BaseCommand):
         if self.port:
             args += ["--port=%s" % self.port]
         args += [self.db]
+        base_args = copy(args)
         blacklist_tables = self.get_blacklist_tables()
         if blacklist_tables:
             all_tables = connection.introspection.get_table_list(connection.cursor())
             tables = list(set(all_tables) - set(blacklist_tables))
             args += tables
         os.system('%s %s > %s' % (getattr(settings, 'BACKUP_SQLDUMP_PATH', 'mysqldump'), ' '.join(args), outfile))
-
+        #append table structures of blacklist_tables 
+        if blacklist_tables:
+            all_tables = connection.introspection.get_table_list(connection.cursor())
+            blacklist_tables = list(set(all_tables) and set(blacklist_tables))
+            args = base_args + ['-d'] + blacklist_tables
+            cmd = '%s %s >> %s' % (getattr(settings, 'BACKUP_SQLDUMP_PATH', 'mysqldump'), ' '.join(args), outfile)
+            os.system(cmd)
+            
     def do_postgresql_backup(self, outfile):
         args = []
         if self.user:
