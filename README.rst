@@ -8,7 +8,7 @@ Requirements
 ------------
 
 My fork of Pysftp: https://github.com/andybak/Pysftp
-(a nice friendly wrapper around Paramiko: https://github.com/robey/paramiko)
+(a nice friendly wrapper around Paramiko: https://github.com/paramiko/paramiko)
 
 Authors
 -------
