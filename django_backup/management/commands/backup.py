@@ -176,11 +176,11 @@ class Command(BaseCommand):
             self.host = settings.DATABASE_HOST
             self.port = settings.DATABASE_PORT
 
-        self.backup_dir = settings.BACKUP_LOCAL_DIRECTORY
-        self.remote_dir = settings.BACKUP_FTP_DIRECTORY
-        self.ftp_server = settings.BACKUP_FTP_SERVER
-        self.ftp_username = settings.BACKUP_FTP_USERNAME
-        self.ftp_password = settings.BACKUP_FTP_PASSWORD
+        self.backup_dir = getattr(settings, 'BACKUP_LOCAL_DIRECTORY', os.getcwd())
+        self.remote_dir = getattr(settings, 'BACKUP_FTP_DIRECTORY', '')
+        self.ftp_server = getattr(settings, 'BACKUP_FTP_SERVER', '')
+        self.ftp_username = getattr(settings, 'BACKUP_FTP_USERNAME', '')
+        self.ftp_password = getattr(settings, 'BACKUP_FTP_PASSWORD', '')
 
         if self.clean_rsync:
             print 'cleaning broken rsync backups'
